@@ -1,7 +1,7 @@
 # Redux Document
 Redux関連の英語ドキュメントor記事をGoogle翻訳で読んでいくログです。
 
-[http://redux.js.org/][]
+http://redux.js.org/
 
 Reduxは、JavaScriptアプリの予測可能なコンテナです。
 
@@ -90,6 +90,7 @@ function todoApp(state = {}, action) {
 ```
 
 これは、基本的にReduxの考え方です。 Redux APIは使用していないことに注意してください。 このパターンを容易にするためのユーティリティがいくつかありますが、主な考え方は、アクションオブジェクトに応じて状態がどのように更新されるかを記述し、コードの90％がReduxを使用しない単純なJavaScriptです それ自体、そのAPI、または任意の魔法です。
+
 
 
 
