@@ -9,7 +9,7 @@ Reduxは、JavaScriptアプリの予測可能なコンテナです。
 
 ReduxをReactと一緒に使用することも、他のビューライブラリと併用することもできます。
 
-##List
+## Link
 1. [Introduction](https://github.com/jb-matsunaga/redux-document/blob/master/01_Introduction/node.md)
 
 
