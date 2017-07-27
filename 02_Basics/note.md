@@ -53,3 +53,58 @@ import { ADD_TODO, REMOVE_TODO } from '../actionTypes'
 }
 ```
 
+## Action Creators
+アクションクリエイターは、アクションを作成する機能です。 「アクション」と「アクションクリエイター」の用語を簡単に組み合わせることができますので、適切な用語を使用するようにしてください。
+
+Reduxアクション作成者は単にアクションを返します：
+
+```javascript
+function addTodo(text) {
+  return {
+    type: ADD_TODO,
+    text
+  }
+}
+```
+
+これにより、ポータブルで簡単にテストすることができます。
+
+従来のFluxでは、アクションクリエイターは、呼び出されたときにディスパッチをトリガーすることがよくありました。
+
+```javascript
+function addTodoWithDispatch(text) {
+  const action = {
+    type: ADD_TODO,
+    text
+  }
+  dispatch(action)
+}
+```
+
+Reduxでは、これは当てはまりません。
+
+代わりに、実際にディスパッチを開始するには、結果をdispatch（）関数に渡します。
+
+```javascript
+dispatch(addTodo(text))
+dispatch(completeTodo(index))
+```
+
+あるいは、自動的にディスパッチするバウンドアクションクリエータを作成することもできます。
+
+```javascript
+const boundAddTodo = text => dispatch(addTodo(text))
+const boundCompleteTodo = index => dispatch(completeTodo(index))
+```
+
+今すぐあなたはそれらを直接呼び出すことができます：
+
+```javascript
+boundAddTodo(text)
+boundCompleteTodo(index)
+```
+
+dispatch（）関数はstore.dispatch（）としてストアから直接アクセスできますが、react-reduxのconnect（）などのヘルパーを使用してアクセスする可能性が高くなります。 bindActionCreators（）を使用すると、多くのアクション作成者を自動的にdispatch（）関数にバインドできます。
+
+アクションクリエイターは非同期で、副作用もあります。 上級チュートリアルでは、非同期アクションについて読むことができ、AJAXレスポンスを処理し、アクションクリエータを非同期コントロールフローに組み立てる方法を学ぶことができます。 アドバンスチュートリアルと非同期アクションの前提条件であるその他の重要な概念については、基本チュートリアルを完了するまで非同期アクションに進む必要はありません。
+
