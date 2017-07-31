@@ -108,3 +108,42 @@ dispatch（）関数はstore.dispatch（）としてストアから直接アク�
 
 アクションクリエイターは非同期で、副作用もあります。 上級チュートリアルでは、非同期アクションについて読むことができ、AJAXレスポンスを処理し、アクションクリエータを非同期コントロールフローに組み立てる方法を学ぶことができます。 アドバンスチュートリアルと非同期アクションの前提条件であるその他の重要な概念については、基本チュートリアルを完了するまで非同期アクションに進む必要はありません。
 
+## ソースコード
+
+```javascript
+/**
+ * action types
+ */
+
+export const ADD_TODO = 'ADD_TODO';
+export const TOGGLE_TODO = 'TOGGLE_TODO';
+export const SET_VISIBILITY_FILTER = 'SET_VISIBILITY_FILTER';
+
+/**
+ * other constants
+ */
+
+export const VisibilityFilters = {
+    SHOW_ALL: 'SHOW_ALL',
+    SHOW_COMPLETED: 'SHOW_COMPLETED',
+    SHOW_ACTIVE: 'SHOW_ACTIVE'
+}
+
+/**
+ * action creators
+ */
+
+export function addTodo(text) {
+    return { type: ADD_TODO, text }
+}
+
+export function TOGGLE_TODO(index) {
+    return { type: TOGGLE_TODO, index }
+}
+
+export function SET_VISIBILITY_FILTER(filter) {
+    return { type: SET_VISIBILITY_FILTER, filter }
+}
+```
+## NEXT STEP
+次に、これらのアクションをディスパッチしたときに状態がどのように更新されるかを指定するリデューサをいくつか定義しましょう！
