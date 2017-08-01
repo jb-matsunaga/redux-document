@@ -11,7 +11,9 @@ ReduxをReactと一緒に使用することも、他のビューライブラリ�
 
 ## Link
 1. [Introduction](https://github.com/jb-matsunaga/redux-document/blob/master/01_Introduction/note.md)
-2. [Basic](https://github.com/jb-matsunaga/redux-document/blob/master/02_Basic/note.md)
+2. [Basic](https://github.com/jb-matsunaga/redux-document/tree/master/02_Basics)
+    - [Actions](https://github.com/jb-matsunaga/redux-document/blob/master/02_Basics/01_Actions.md)
+    - [Reducers](https://github.com/jb-matsunaga/redux-document/blob/master/02_Basics/02_Reducers.md)
 
 
 
