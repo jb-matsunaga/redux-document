@@ -103,5 +103,44 @@ function todoApp(state = initialState, action) {
 
 >*Note that:*
 1. 私たちは状態を変えません。 Object.assign（）でコピーを作成します。 Object.assign（state、{visibilityFilter：action.filter}）も間違っています：最初の引数を変更します。 空のオブジェクトを最初のパラメータとして指定する必要があります。 また、オブジェクトスプレッドオペレータプロポーザルが{... state、... newState}を書き込むようにすることもできます。
-[Object.assign()]()
+[Object.assign()](https://github.com/jb-matsunaga/redux-document/blob/master/others/objectAssign.md)
+
+2. デフォルトの場合、前の状態に戻ります。 未知の行動があれば前の状態に戻すことが重要です。
+
+>*Note on Object.assign*
+>Object.assign（）はES6の一部ですが、ほとんどのブラウザではまだ実装されていません。 polyfill、Babelプラグイン、または_.assign（）のような別のライブラリのヘルパーを使用する必要があります。
+>*Note on switch and Boilerplate*
+>switch文は実際の定型文ではありません。 Fluxの本当の定型文は、アップデートを発行する必要性、StoreをDispatcherに登録する必要性、Storeをオブジェクトにする必要性（普遍的なアプリケーションが必要な場合に発生する問題）です。 Reduxは、イベントエミッタの代わりに純粋なレデューサを使用することで、これらの問題を解決します。
+>多くの人が、ドキュメント内でswitch文を使用するかどうかに基づいて、フレームワークを選択することは残念です。 スイッチが気に入らない場合は、「定型化を減らす」のように、ハンドラ・マップを受け入れるカスタムのcreateReducer関数を使用できます。
+
+## その他のアクションの処理
+処理するアクションが2つ追加されています。 SET_VISIBILITY_FILTERと同じように、ADD_TODOとTOGGLE_TODOアクションをインポートしてから、ADD_TODOを処理するためにレデューサーを拡張します。
+
+```javascript
+import { VisibilityFilters, ADD_TODO, TOGGLE_TODO } from './actions';
+
+
+function todoApp(state = initialState, action) {
+    switch(action.type) {
+        case SET_VISIBILITY_FILTER:
+            return Object.assign({}, state, {
+                visibilityFilter: action.filter
+            })
+        case ADD_TODO:
+            return Object.assign({}, state, {
+                todos: [
+                    ...state.todos,
+                    {
+                        text: action.text,
+                        completed: false
+                    }
+                ]
+            })
+        default:
+            return state
+    }
+}
+```
+
+
 
