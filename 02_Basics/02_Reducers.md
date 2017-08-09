@@ -38,3 +38,70 @@ Todoアプリでは、2つの異なるものを保存したい：
 (previousState, action) => newState
 ```
 これは、あなたがArray.prototype.reduce（reducer、？initialValue）に渡す関数のタイプであるため、Reducerと呼ばれています。 Reducerが純粋にとどまることは非常に重要です。
+
+[Array.prototype.reduce()](https://github.com/jb-matsunaga/redux-document/blob/master/others/01_arrayPrototypeReduce.md)
+
+reducerの中で以下のことをやってはいけません：
+- 引数のstate, actionインスタンスの値を変更する
+- 副作用をおこす(APIを呼んだり、ルーティングを変えるなどなど)
+- 毎回値が変わるもの(Date.now() や Math.random())を扱う
+
+>[Redux入門 3日目 Reduxの基本・Reducers(公式ドキュメント和訳)](http://qiita.com/kiita312/items/7fdce94912d6d9c801f8)
+
+私たちは、高度なウォークスルーで副作用を実行する方法を探求します。 今のところ、reducerは純粋でなければならないことを覚えておいてください。 同じ引数が与えられた場合、次の状態を計算して返す必要があります。 驚く様な事じゃない。 副作用はありません。 API呼び出しはありません。 突然変異はありません。 ただの計算だけ。
+
+[advanced walkthrough](http://redux.js.org/docs/advanced/)
+
+これを解消して、先ほど定義したactionを理解するために徐々に教授してreducerを書き始めましょう。
+
+初期状態を指定することから始めます。 Reduxは最初に定義されていない状態でreducerを呼びます。 これは私たちのアプリの初期状態を返すチャンスです：
+
+```javascript
+import { VisibilityFilters } from './actions'
+
+const initialState = {
+    visibilityFilter: VisibilityFilters.SHOW_ALL,
+    todos: []
+}
+
+function todoApp(state, action) {
+    if(typeof state === 'undefined') {
+        return initialState
+    }
+    // 今は何もactionを処理しない
+    // そして与えられたstateを返すだけ
+    return state
+}
+```
+
+1つのきちんとしたトリックは、これをよりコンパクトな方法で書くために、ES6のデフォルト引数の構文を使用することです。
+
+[ES6 default arguments syntax](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Functions/default_parameters)
+
+```javascript
+function todoApp(state = initialState, action) {
+    // 今は何もactionを処理しない
+    // そして与えられたstateを返すだけ
+    return state
+}
+```
+
+SET VISIBILITY FILTERを処理しましょう。 状態の可視性フィルタを変更するだけです。 簡単：
+
+```javascript
+function todoApp(state = initialState, action) {
+   switch (action.type) {
+       case SET_VISIBILITY_FILTER:
+           return Object.assign({}, state, {
+               visibilityFilter: action.filter
+           })
+        default:
+            return state
+   }
+}
+```
+
+>*Note that:*
+1. 私たちは状態を変えません。 Object.assign（）でコピーを作成します。 Object.assign（state、{visibilityFilter：action.filter}）も間違っています：最初の引数を変更します。 空のオブジェクトを最初のパラメータとして指定する必要があります。 また、オブジェクトスプレッドオペレータプロポーザルが{... state、... newState}を書き込むようにすることもできます。
+[Object.assign()]()
+
