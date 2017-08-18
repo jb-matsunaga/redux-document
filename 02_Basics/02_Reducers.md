@@ -142,5 +142,22 @@ function todoApp(state = initialState, action) {
 }
 ```
 
+前と同じように、状態やフィールドに直接書き込むことはなく、代わりに新しいオブジェクトを返します。新しいtodosは、最後の単一の新しいアイテムと連結された古いtodosに等しいです。アクションからのデータを使用して新しいtodoが構築されました。
+
+最後に、TOGGLE_TODOハンドラの実装は完全な驚きではありません。
 
 
+```javascript
+case TOGGLE_TODO:
+    return Object.assign({}, state, {
+        todos: state.todos.map((todo, index) => {
+            if (index === action.index) {
+                return Object.assign({}, todo, {
+                    completed: !todo.completed
+                })
+            }
+            return todo
+    })
+})
+```
+突然変異に頼らずに配列内の特定のアイテムを更新したいので、インデックスにあるアイテム以外の同じアイテムを持つ新しい配列を作成する必要があります。そのような操作を書くことが多いと思われる場合は、immutability-helper、updeep、さらにはImmutableのようなヘルパーを使用して詳細な更新をネイティブにサポートすることをお勧めします。最初にクローンを作成しない限り、状態の内部に何も割り当てないことを忘れないでください。
