@@ -161,3 +161,201 @@ case TOGGLE_TODO:
 })
 ```
 突然変異に頼らずに配列内の特定のアイテムを更新したいので、インデックスにあるアイテム以外の同じアイテムを持つ新しい配列を作成する必要があります。そのような操作を書くことが多いと思われる場合は、immutability-helper、updeep、さらにはImmutableのようなヘルパーを使用して詳細な更新をネイティブにサポートすることをお勧めします。最初にクローンを作成しない限り、状態の内部に何も割り当てないことを忘れないでください。
+
+## Splitting Reducers
+ここまでは私たちのコードです。かなり冗長です。
+
+```javascript
+function todoApp(state = initialState, action) {
+    switch (action.type) {
+        case SET_VISIBILITY_FILTER:
+        return Object.assign({}, state, {
+            visibilityFilter: action.filter
+        })
+        case ADD_TODO:
+        return Object.assign({}, state, {
+            todos: [
+                ...state.todos,
+                {
+                    text:action.text,
+                    completed: false
+                }
+            ]
+        })
+        case TOGGLE_TODO:
+        return Object.assign({}, state, {
+            todos: state.todos.map((todo, index) => {
+                if (index === action.index) {
+                     return Object.assign({}, state, {
+                        completed: !todo.completed
+                    })
+                }
+                return todo
+            })
+        })
+        default:
+        return state
+    }
+}
+```
+
+理解しやすくする方法はありますか？ todosとvisibilityFilterは完全に独立して更新されているようです。時には状態フィールドが互いに依存し、より多くの配慮が必要になることもありますが、私たちの場合、簡単に更新することを別々の関数に分割することができます：
+
+```javascript
+function todos(state = [], action) {
+    switch (action.type) {
+        case ADD_TODO:
+        return [
+            ...state,
+            {
+                text: action.text,
+                completed: false
+            }
+        ]
+        case TOGGLE_TODO:
+        return state.map((todo, index) => {
+            if (index === action.index) {
+                return Object.assign({}, todo, {
+                    completed: !todo.completed
+                })
+            }
+            return todo
+        })
+        default:
+        return state
+    }
+}
+
+function todoApp(state = initialState, action) {
+    switch (action.type) {
+        case SET_VISIBILITY_FILTER:
+        return Obhect.assign({}, state, {
+            visibilityFilter: action.filter
+        })
+        case ADD_TODO:
+        case TOGGLE_TODO:
+        return Object.assign({}, state, {
+            todos: todos(state.todos, action)
+        })
+        default:
+        return state
+    }
+}
+```
+
+todosはstateも受け入れますが、配列であることに注意してください。今すぐtodoAppは管理する状態のスライスを与え、todosはそのスライスだけを更新する方法を知っています。これはレデューサー構成と呼ばれ、Reduxアプリケーションを構築する基本的なパターンです。
+
+Reducerの構成をもっと調べてみましょう。私たちはまた、視界を管理するReducerを抽出できますか？私たちはできる。
+
+インポートの下で、ES6 Object Destructuringを使用してSHOW_ALLを宣言しましょう：
+
+```javascript
+const { SHOW_ALL } = VisibilityFilters
+```
+
+Then:
+
+```javascript
+function visibilityFilter(state = SHOW_ALL, action) {
+    switch (action.type) {
+        case SET_VISIBILITY_FILTER:
+        return action.filter
+        default:
+        return state
+    }
+}
+```
+
+今度は、主なReducerを、状態の一部を管理するReducerを呼び出す関数として書き直し、それらを単一のオブジェクトに結合することができます。また、完全な初期状態を知る必要もありません。最初に未定義のときに子レデューサーが初期状態に戻っていれば十分です。
+
+```javascript
+function todos(state = [], action) {
+    switch (action.type) {
+        case ADD_TODO:
+        return [
+            ...state,
+            {
+                text: action.text,
+                completed: false
+            }
+        ]
+        case TOGGLE_TODO:
+        return state.map((todo, index) => {
+            if (index === action.index) {
+                return Object.assign({}, todo, {
+                    completed: !todo.completed
+                })
+            }
+            return todo
+        })
+        default:
+        return state
+    }
+}
+
+function visibilityFilter (state = SHOW_ALL, action) {
+    switch (action.type) {
+        case SET_VISIBILITY_FILTER:
+        return action.filter
+        default:
+        return state
+    }
+}
+
+function todoApp(state = {}, action) {
+    visibilityFilter: visibilityFilter(state.visibilityFilter, action),
+    todos: todos(state.todos, action)
+}
+```
+
+*これらのReducerのそれぞれは、グローバルstateのそれ自体の部分を管理していることに注意してください。stateパラメータはすべてのReducerで異なり、それが管理するstateの一部に対応します。*
+
+これはすでによく見ています！アプリが大きくなると、レデューサーを別々のファイルに分割し、それらを完全に独立させ、異なるデータドメインを管理することができます。
+
+最後にReduxはcombineReducers（）というユーティリティーを提供しています。これは、上記のtodoAppと同じ定型ロジックを実行します。その助けを借りて、todoAppを次のように書き直すことができます：
+
+```javascript
+import { combineReducers } from 'redux'
+
+const todoApp = combineReducers({
+    visibilityFilter,
+    todos
+})
+
+export default todoApp
+```
+
+これは以下と等価であることに注意してください。
+
+```javascript
+export default function todoApp(state = {}, action) {
+    return {
+        visibilityFilter: visibilityFilter(state.visibilityFilter, action),
+        todos: todos(state.todos, action)
+    }
+}
+```
+
+また、異なるキーや関数を別々に呼び出すこともできます。複合Reducerを書くためのこれらの2つの方法は同等です：
+
+```javascript
+comst reducer = combineReducers({
+    a: doSomethingWithA,
+    b: processB,
+    c: c
+})
+```
+```javascript
+function reducer(state = {}, action) {
+    return {
+        a: doSomethingWithA(state.a, action),
+        b: processB(state.b, action),
+        c: c(state.c, action)
+    }
+}
+```
+すべてのcombineReducers（）は、キーに従って選択された状態のスライスを使用してレデューサーを呼び出す関数を生成し、その結果を再び単一のオブジェクトに結合します。それは魔法ではない。 combineReducers（）は、他のレデューサーと同様に、レデューサーのすべてが状態を変更しない場合、新しいオブジェクトを作成しません。
+
+
+
+
