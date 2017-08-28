@@ -356,6 +356,71 @@ function reducer(state = {}, action) {
 ```
 すべてのcombineReducers（）は、キーに従って選択された状態のスライスを使用してレデューサーを呼び出す関数を生成し、その結果を再び単一のオブジェクトに結合します。それは魔法ではない。 combineReducers（）は、他のレデューサーと同様に、レデューサーのすべてが状態を変更しない場合、新しいオブジェクトを作成しません。
 
+>ES6に精通したユーザーのための注意
+>combineReducersはオブジェクトを必要とするため、すべての最上位レデューサーを別々のファイルに配置し、それぞれのレデューサー関数をエクスポートし、それらの名前をキーとしてそれらを取得するために
 
+```javascript
+import { combineReducers } from 'redux'
+import * as reducers from './reducers'
 
+const todoApp = combineReducers(reducers)
+```
+>import *はまだ新しい構文なので、混乱を避けるためにドキュメントではこれを使用しませんが、コミュニティの例によってはそれに遭遇するかもしれません。
 
+## Source Code
+
+reducers.js
+
+```javascript
+import { combineReducers } from 'redux'
+import {
+  ADD_TODO,
+  TOGGLE_TODO,
+  SET_VISIBILITY_FILTER,
+  VisibilityFilters
+} from './actions'
+const { SHOW_ALL } = VisibilityFilters
+
+function visibilityFilter(state = SHOW_ALL, action) {
+  switch (action.type) {
+    case SET_VISIBILITY_FILTER:
+      return action.filter
+    default:
+      return state
+  }
+}
+
+function todos(state = [], action) {
+  switch (action.type) {
+    case ADD_TODO:
+      return [
+        ...state,
+        {
+          text: action.text,
+          completed: false
+        }
+      ]
+    case TOGGLE_TODO:
+      return state.map((todo, index) => {
+        if (index === action.index) {
+          return Object.assign({}, todo, {
+            completed: !todo.completed
+          })
+        }
+        return todo
+      })
+    default:
+      return state
+  }
+}
+
+const todoApp = combineReducers({
+  visibilityFilter,
+  todos
+})
+
+export default todoApp
+``` 
+
+## Next Steps
+次に、状態を保持し、アクションをディスパッチする際にreducerに電話をかけるReduxストアを作成する方法を探究します。
