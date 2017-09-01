@@ -19,7 +19,7 @@ ReactDOM.render(
 )
 ```
 
-## React Router
+### React Router
 ```javascript
 ReactDOM.render(
   <Provider store={store}>
