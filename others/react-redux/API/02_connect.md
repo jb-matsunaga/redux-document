@@ -91,10 +91,126 @@ options.pureがtrueの場合、connectはmapStateToProps、mapDispatchToProps、
 
 - mapStateToProps関数が計算上高価で、あなたの状態の小さなスライスにのみ関係する場合は、areStatesEqualをオーバーライドすることもできます。 たとえば：areStatesEqual：（next、prev）=> prev.entities.todos === next.entities.todos; これは、状態スライスを除くすべての状態変化を効果的に無視します。
 
-- 店舗の状態を変える不純な減速材がある場合は、常にfalseを返すように、areStatesEqualをオーバーライドすることができます（areStatesEqual：（）=> false）。 （これは、mapStateToProps関数に応じて、他の平等チェックにも影響を与える可能性があります）。
+- storeのstateを変える不純なreducerがある場合は、常にfalseを返すように、areStatesEqualをオーバーライドすることができます（areStatesEqual：（）=> false）。 （これは、mapStateToProps関数に応じて、他の平等チェックにも影響を与える可能性があります）。
 
 - 入ってくるpropsをホワイトリストにする方法として、areOwnPropsEqualを上書きすることができます。ホワイトリストのpropsにもmapStateToProps、mapDispatchToProps、およびmergePropsを実装する必要があります。 （たとえば、recomposeのmapPropsを使用するなど、この他の方法を実現する方が簡単かもしれません）。
 
 - 関連するpropsが変更された場合にのみ新しいオブジェクトを返すmemoizedセレクターをmapStateToPropsが使用する場合、strictEqualを使用するためにareStatePropsEqualをオーバーライドすることができます。 これは、mapStateToPropsが呼び出されるたびに個々のpropsに対して余分な等価性チェックを行わないため、パフォーマンスはごくわずかです。
 
 - 選択子が複雑なpropsを作成する場合は、deepEqualを実装するためにareMergedPropsEqualをオーバーライドすることができます。 ex：入れ子オブジェクト、新しい配列など（深度等価チェックは再レンダリングよりも速くなければなりません）
+
+
+### Returns
+提供された引数から派生したコンポーネントにstateクリエータとactionクリエータを渡す高次のリアクタコンポーネントクラス。これはconnectAdvancedによって作成され、この高次コンポーネントの詳細はここでカバーされています。
+
+### Examples
+#### dispatchするだけでstoreを聞かない
+```javascript
+export default connect()(TodoApp)
+```
+
+#### storeに登録せずにすべてのアクションクリエータ（addTodo、completeTodo、...）を挿入する
+```javascript
+import * as actionCreators from './actionCreators'
+export def`ault connect(null, actionCreators)(TodoApp)
+```
+
+#### `dispatch`とグローバルstateのすべてのフィールドを注入する
+>これをしないでください！ TodoAppはすべての状態の変更後に再レンダリングするため、パフォーマンスの最適化は行われません。 ビュー階層内の複数のコンポーネントに対して、より細かいconnect（）を使用する方がそれぞれが優れています 関連する状態のスライスを聞く。
+```javascript
+export default connect(state => state)(TodoApp)
+```
+
+#### `dispatch`と`todos`を注入する
+```javascript
+const mapStateToProps = (state) => {
+  return { todos: state.todos }
+}
+
+export default connect(mapStateToProps)(TodoApp)
+```
+
+#### `todos`とすべての`action creators`を注入する
+```javascript
+import * as actionCreators from './actionCreators'
+
+function mapStateToProps(state) {
+  return { todos: state.todos }
+}
+
+export default connect(mapStateToProps, actionCreators)(TodoApp)
+```
+
+#### `todos`とすべてのアクションクリエータ（addTodo、completeTodo、...）をアクションとして挿入する
+```javascript
+import * as actionCreators from './actionCreators'
+import { bindActionCreators } from 'redux'
+
+function mapStateToProps(state) {
+  return { todos: state.todos }
+}
+
+function mapDispatchToProps(dispatch) {
+  return { actions: bindActionCreators(actionCreators, dispatch) }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(TodoApp)
+```
+
+#### `todos`と特定のアクション作成者（addTodo）を挿入する
+```javascript
+import { addTodo } from './actionCreators'
+import { bindActionCreators } from 'redux'
+
+function mapStateToProps(state) {
+  return { todos: state.todos }
+}
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators({ addTodo }, dispatch)
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(TodoApp)
+```
+
+#### `todos`、todoActionCreatorsをtodoActions、counterActionCreatorsをcounterActionsとして挿入する
+```javascript
+import * as todoActionCreators from './todoActionCreators'
+import * as counterActionCreators from './counterActionCreators'
+import { bindActionCreators } from 'redux'
+
+function mapStateToProps(state) {
+  return { todos: state.todos }
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    todoActions: bindActionCreators(todoActionCreators, dispatch),
+    counterActions: bindActionCreators(counterActionCreators, dispatch)
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(TodoApp)
+```
+
+#### todosとtodoActionCreatorsとcounterActionCreatorsをアクションとして一緒に挿入する
+```javascript
+import * as todoActionCreators from './todoActionCreators'
+import * as counterActionCreators from './counterActionCreators'
+import { bindActionCreators } from 'redux'
+
+function mapStateToProps(state) {
+  return { todos: state.todos }
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    actions: bindActionCreators(Object.assign({}, todoActionCreators, counterActionCreators), dispatch)
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(TodoApp)
+```
+
+#### todosとすべてのtodoActionCreatorsとcounterActionCreatorsをpropsとして直接注入する
+
