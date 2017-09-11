@@ -213,4 +213,47 @@ export default connect(mapStateToProps, mapDispatchToProps)(TodoApp)
 ```
 
 #### todosとすべてのtodoActionCreatorsとcounterActionCreatorsをpropsとして直接注入する
+```javascript
+import * as todoActionCreators from './todoActionCreators'
+import * as counterActionCreators from './counterActionCreators'
+import { bindActionCreators } from 'redux'
 
+function mapStateToProps(state) {
+  return { todos: state.todos }
+}
+
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators(Object.assign({}, todoActionCreators, counterActionCreators), dispatch)
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(TodoApp)
+```
+
+#### propsに応じて特定のユーザーのtodosを注入する
+```javascript
+import * as actionCreators from './actionCreators'
+
+function mapStateToProps(state, ownProps) {
+  return { todos: state.todos[ownProps.userId] }
+}
+
+export default connect(mapStateToProps)(TodoApp)
+```
+
+#### propsに応じて特定のユーザーのタスクを注入し、props.userIdをアクションに注入する
+```javascript
+import * as actionCreators from './actionCreators'
+
+function mapStateToProps(state) {
+  return { todos: state.todos }
+}
+
+function mergeProps(stateProps, dispatchProps, ownProps) {
+  return Object.assign({}, ownProps, {
+    todos: stateProps.todos[ownProps.userId],
+    addTodo: (text) => dispatchProps.addTodo(ownProps.userId, text)
+  })
+}
+
+export default connect(mapStateToProps, actionCreators, mergeProps)(TodoApp)
+```
